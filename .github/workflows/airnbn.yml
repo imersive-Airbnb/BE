@@ -35,6 +35,7 @@ jobs:
           key: ${{ secrets.KEY }}
           port: ${{ secrets.PORT }}
           script: |
+            sudo chmod 777 /var/run/docker.sock
             docker stop airnbnContainer
             docker rm airnbnContainer
             docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/airnbn-images

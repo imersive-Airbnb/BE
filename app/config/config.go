@@ -16,7 +16,7 @@ var (
 type AppConfig struct {
 	DB_USERNAME string
 	DB_PASSWORD string
-	DB_HOSTNAME string
+	DB_HOST     string
 	DB_PORT     int
 	DB_NAME     string
 	jwtKey      string
@@ -44,8 +44,8 @@ func ReadEnv() *AppConfig {
 		app.DB_PASSWORD = val
 		isRead = false
 	}
-	if val, found := os.LookupEnv("DBHOSTNAME"); found {
-		app.DB_HOSTNAME = val
+	if val, found := os.LookupEnv("DBHOST"); found {
+		app.DB_HOST = val
 		isRead = false
 	}
 	if val, found := os.LookupEnv("DBPORT"); found {
@@ -76,7 +76,7 @@ func ReadEnv() *AppConfig {
 		app.jwtKey = viper.Get("JWT_KEY").(string)
 		app.DB_USERNAME = viper.Get("DBUSER").(string)
 		app.DB_PASSWORD = viper.Get("DBPASS").(string)
-		app.DB_HOSTNAME = viper.Get("DBHOSTNAME").(string)
+		app.DB_HOST = viper.Get("DBHOST").(string)
 		app.DB_PORT, _ = strconv.Atoi(viper.Get("DBPORT").(string))
 		app.DB_NAME = viper.Get("DBNAME").(string)
 	}

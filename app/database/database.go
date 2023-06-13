@@ -15,8 +15,8 @@ import (
 func InitDBMysql(cfg *config.AppConfig) *gorm.DB {
 
 	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True&loc=Local",
-		cfg.DB_USERNAME, cfg.DB_PASSWORD, cfg.DB_HOSTNAME, cfg.DB_PORT, cfg.DB_NAME)
-	fmt.Println("db host", cfg.DB_HOSTNAME)
+		cfg.DB_USERNAME, cfg.DB_PASSWORD, cfg.DB_HOST, cfg.DB_PORT, cfg.DB_NAME)
+	fmt.Println("db host", cfg.DB_HOST)
 	fmt.Println("DB", connectionString)
 	db, err := gorm.Open(mysql.Open(connectionString), &gorm.Config{})
 
