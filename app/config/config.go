@@ -44,7 +44,7 @@ func ReadEnv() *AppConfig {
 		app.DB_PASSWORD = val
 		isRead = false
 	}
-	if val, found := os.LookupEnv("DBHOST"); found {
+	if val, found := os.LookupEnv("DBHOSTNAME"); found {
 		app.DB_HOSTNAME = val
 		isRead = false
 	}
@@ -76,7 +76,7 @@ func ReadEnv() *AppConfig {
 		app.jwtKey = viper.Get("JWT_KEY").(string)
 		app.DB_USERNAME = viper.Get("DBUSER").(string)
 		app.DB_PASSWORD = viper.Get("DBPASS").(string)
-		app.DB_HOSTNAME = viper.Get("DBHOST").(string)
+		app.DB_HOSTNAME = viper.Get("DBHOSTNAME").(string)
 		app.DB_PORT, _ = strconv.Atoi(viper.Get("DBPORT").(string))
 		app.DB_NAME = viper.Get("DBNAME").(string)
 	}
