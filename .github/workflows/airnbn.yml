@@ -9,13 +9,17 @@ jobs:
   docker:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      -
+        name: Checkout
         uses: actions/checkout@v3
-      - name: Set up QEMU
+      -
+        name: Set up QEMU
         uses: docker/setup-qemu-action@v2
-      - name: Set up Docker Buildx
+      -
+        name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-      - name: Login to Docker Hub
+      -
+        name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -40,4 +44,4 @@ jobs:
             docker rm airnbnContainer
             docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/airnbn-images
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/airnbn-images
-            docker run -d -p 80:8080 -e JWT_KEY=${{ secrets.JWT_KEY }} -e DBUSER=${{ secrets.DBUSER }} -e DBPASS=${{ secrets.DBPASS }} -e DBHOST=${{ secrets.DBHOST }} -e DBPORT=${{ secrets.DBPORT }} -e DBNAME=${{ secrets.DBNAME }} --name airnbnContainer ${{ secrets.DOCKERHUB_USERNAME }}/airnbn-images:latest
+            docker run -d -p 80:8080 -e JWT_KEY=${{ secrets.JWT_KEY }} -e DBUSER=${{ secrets.DBUSER }} -e DBPASS=${{ secrets.DBPASS }} -e DBHOST=${{ secrets.DBHOSTNAME }} -e DBPORT=${{ secrets.DBPORT }} -e DBNAME=${{ secrets.DBNAME }} --name airnbnContainer ${{ secrets.DOCKERHUB_USERNAME }}/airnbn-images:latest
