@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"airnbn/app/middlewares"
 	_userData "airnbn/features/user/data"
 	_userHandler "airnbn/features/user/handler"
 	_userService "airnbn/features/user/service"
@@ -15,10 +16,12 @@ func InitRoute(e *echo.Echo, db *gorm.DB) {
 	userHandlerAPI := _userHandler.New(userService)
 
 	// // Register middleware
-	// jwtMiddleware := middlewares.JWTMiddleware()
+	jwtMiddleware := middlewares.JWTMiddleware()
 
 	// User Routes
 
 	e.POST("/users", userHandlerAPI.RegisterUser)
 	e.POST("/login", userHandlerAPI.Login)
+	e.GET("/users/:id", userHandlerAPI.GetProfileByID, jwtMiddleware)
+	e.PUT("/users/:id", userHandlerAPI.UpdateUserByID, jwtMiddleware)
 }
