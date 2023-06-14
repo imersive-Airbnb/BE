@@ -6,11 +6,23 @@ import (
 	"errors"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 )
 
 type userService struct {
 	userData user.UserDataInterface
 	validate *validator.Validate
+}
+
+// CheckProfile implements user.UserServiceInterface.
+func (service *userService) CheckProfile(userID uuid.UUID) (user.UserCore, error) {
+	// Retrieve the user profile from the database based on the userID
+	userData, err := service.userData.CheckProfileByID(userID)
+	if err != nil {
+		return user.UserCore{}, err
+	}
+
+	return userData, nil
 }
 
 // UpgradeStatus implements user.UserServiceInterface.
@@ -42,15 +54,6 @@ func (service *userService) UpdateUser(userID string, updatedUser user.UserCore)
 }
 
 // CheckProfile implements user.UserServiceInterface.
-func (service *userService) CheckProfile(userID string) (user.UserCore, error) {
-	// Retrieve the user profile from the database based on the userID
-	userData, err := service.userData.CheckProfileByID(userID)
-	if err != nil {
-		return user.UserCore{}, err
-	}
-
-	return userData, nil
-}
 
 // Login implements user.UserServiceInterface.
 func (service *userService) Login(email string, password string) (user.UserCore, string, error) {

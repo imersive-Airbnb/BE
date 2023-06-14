@@ -15,6 +15,31 @@ type userQuery struct {
 	db *gorm.DB
 }
 
+// CheckProfileByID implements user.UserDataInterface.
+func (repo *userQuery) CheckProfileByID(userID uuid.UUID) (user.UserCore, error) {
+	var userData User
+
+	// Find the user profile by ID
+	tx := repo.db.First(&userData, "user_id = ?", userID)
+	if tx.Error != nil {
+		return user.UserCore{}, tx.Error
+	}
+
+	// Convert database model to user core model
+	dataCore := user.UserCore{
+		UserID:    userID.String(),
+		Name:      userData.Name,
+		Email:     userData.Email,
+		Phone:     userData.Phone,
+		Password:  userData.Password,
+		Status:    userData.Status,
+		CreatedAt: userData.CreatedAt,
+		UpdatedAt: userData.UpdatedAt,
+	}
+
+	return dataCore, nil
+}
+
 // UpgradeStatus implements user.UserDataInterface.
 func (repo *userQuery) UpgradeStatus(userID string, newStatus string) error {
 	// Dapatkan pengguna berdasarkan userID
@@ -69,26 +94,6 @@ func (repo *userQuery) UpdateUserByID(userID string, updatedUser user.UserCore) 
 	return nil
 }
 
-// CheckProfileByID implements user.UserDataInterface.
-func (repo *userQuery) CheckProfileByID(userID string) (user.UserCore, error) {
-	var userData User
-
-	// Find the user profile by ID
-	tx := repo.db.First(&userData, "user_id = ?", userID)
-	if tx.Error != nil {
-		return user.UserCore{}, tx.Error
-	}
-
-	// Convert database model to user core model
-	dataCore := user.UserCore{
-		UserID: userData.UserID,
-		Name:   userData.Name,
-		Email:  userData.Email,
-	}
-
-	return dataCore, nil
-}
-
 // Login implements user.UserDataInterface.
 func (repo *userQuery) Login(email string, password string) (user.UserCore, string, error) {
 	var userData User
@@ -132,6 +137,7 @@ func (repo *userQuery) Insert(user user.UserCore) error {
 		UserID:    uuid.New().String(),
 		Name:      user.Name,
 		Email:     user.Email,
+		Phone:     user.Phone,
 		Password:  user.Password,
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
