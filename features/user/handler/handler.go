@@ -46,7 +46,7 @@ func (handler *UserHandler) Login(c echo.Context) error {
 	loginInput := AuthRequest{}
 	errBind := c.Bind(&loginInput)
 	if errBind != nil {
-		return c.JSON(http.StatusBadRequest, helper.FailedResponse("error bind data"))
+		return c.JSON(http.StatusBadRequest, helper.FailedResponse("Error Bind Data"))
 	}
 
 	// Memeriksa apakah email & password telah diinputkan di database
@@ -61,11 +61,12 @@ func (handler *UserHandler) Login(c echo.Context) error {
 
 	response := map[string]interface{}{
 		"user_id": userData.UserID,
+		"name":    userData.Name,
 		"email":   userData.Email,
 		"token":   token,
 	}
 
-	return c.JSON(http.StatusOK, helper.SuccessWithDataResponse("login success", response))
+	return c.JSON(http.StatusOK, helper.SuccessWithDataResponse("Login Success", response))
 }
 
 func (handler *UserHandler) CheckProfileByID(c echo.Context) error {
@@ -75,13 +76,13 @@ func (handler *UserHandler) CheckProfileByID(c echo.Context) error {
 	// Parse userID to uuid.UUID
 	uuidUserID, err := uuid.Parse(userID)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, helper.FailedResponse("Invalid user ID"))
+		return c.JSON(http.StatusBadRequest, helper.FailedResponse("Invalid User ID"))
 	}
 
 	// Retrieve user profile from the userService
 	userData, err := handler.userService.CheckProfile(uuidUserID)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, helper.FailedResponse("Failed to retrieve user profile"))
+		return c.JSON(http.StatusInternalServerError, helper.FailedResponse("Failed to Retrieve User Profile"))
 	}
 
 	// Create the UserResponse
@@ -94,28 +95,33 @@ func (handler *UserHandler) CheckProfileByID(c echo.Context) error {
 	}
 
 	// Return the response
-	return c.JSON(http.StatusOK, helper.SuccessWithDataResponse("User profile retrieved successfully", response))
+	return c.JSON(http.StatusOK, helper.SuccessWithDataResponse("User Profile Retrieved Successfully", response))
 }
 
 func (handler *UserHandler) UpdateUserByID(c echo.Context) error {
-	// Mendapatkan ID pengguna dari token
-	userID, err := middlewares.ExtractTokenUserId(c)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, helper.FailedResponse(err.Error()))
-	}
+	// Get the user ID from the path parameter
+	userID := c.Param("id")
 
-	// Mendapatkan data pengguna yang diperbarui dari permintaan
+	// Get the updated user data from the request
 	var updatedUser user.UserCore
 	if err := c.Bind(&updatedUser); err != nil {
-		return c.JSON(http.StatusBadRequest, helper.FailedResponse("failed to bind data"))
+		return c.JSON(http.StatusBadRequest, helper.FailedResponse("Failed to Bind Data"))
 	}
 
-	// Memperbarui pengguna berdasarkan ID
-	if err := handler.userService.UpdateUser(strconv.Itoa(userID), updatedUser); err != nil {
+	if updatedUser.Password != "" {
+		hashedPassword, err := helper.HashPassword(updatedUser.Password)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, helper.FailedResponse(err.Error()))
+		}
+		updatedUser.Password = hashedPassword
+	}
+
+	if err := handler.userService.UpdateUser(userID, updatedUser); err != nil {
 		return c.JSON(http.StatusInternalServerError, helper.FailedResponse(err.Error()))
 	}
 
-	return c.JSON(http.StatusOK, helper.SuccessResponse("user updated successfully"))
+	return c.JSON(http.StatusOK, helper.SuccessResponse("User Updated Successfully"))
+
 }
 
 func (handler *UserHandler) UpgradeStatus(c echo.Context) error {
