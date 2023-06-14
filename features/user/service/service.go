@@ -13,6 +13,45 @@ type userService struct {
 	validate *validator.Validate
 }
 
+// UpgradeStatus implements user.UserServiceInterface.
+func (service *userService) UpgradeStatus(userID string, newStatus string) error {
+	// Validasi status baru
+	if newStatus != "hosting" {
+		return errors.New("invalid status")
+	}
+
+	// Perbarui status pengguna berdasarkan userID
+	err := service.userData.UpgradeStatus(userID, newStatus)
+	if err != nil {
+		// Tangani kesalahan jika terjadi
+		return err
+	}
+
+	return nil
+}
+
+// UpdateUser implements user.UserServiceInterface.
+func (service *userService) UpdateUser(userID string, updatedUser user.UserCore) error {
+	err := service.userData.UpdateUserByID(userID, updatedUser)
+	if err != nil {
+		// Tangani kesalahan jika terjadi
+		return err
+	}
+
+	return nil
+}
+
+// CheckProfile implements user.UserServiceInterface.
+func (service *userService) CheckProfile(userID string) (user.UserCore, error) {
+	// Retrieve the user profile from the database based on the userID
+	userData, err := service.userData.CheckProfileByID(userID)
+	if err != nil {
+		return user.UserCore{}, err
+	}
+
+	return userData, nil
+}
+
 // Login implements user.UserServiceInterface.
 func (service *userService) Login(email string, password string) (user.UserCore, string, error) {
 	if email == "" || password == "" {

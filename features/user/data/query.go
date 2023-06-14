@@ -7,11 +7,86 @@ import (
 	"errors"
 
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 type userQuery struct {
 	db *gorm.DB
+}
+
+// UpgradeStatus implements user.UserDataInterface.
+func (repo *userQuery) UpgradeStatus(userID string, newStatus string) error {
+	// Dapatkan pengguna berdasarkan userID
+	var user User
+	if err := repo.db.First(&user, "user_id = ?", userID).Error; err != nil {
+		return err
+	}
+
+	// Validasi status baru
+	if newStatus != "hosting" {
+		return errors.New("invalid status")
+	}
+
+	// Perbarui status pengguna
+	user.Status = newStatus
+
+	// Simpan perubahan pada pengguna
+	if err := repo.db.Save(&user).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// UpdateUserByID implements user.UserDataInterface.
+func (repo *userQuery) UpdateUserByID(userID string, updatedUser user.UserCore) error {
+	// Dapatkan pengguna berdasarkan userID
+	var user User
+	if err := repo.db.First(&user, "user_id = ?", userID).Error; err != nil {
+		return err
+	}
+
+	// Perbarui bidang-bidang yang diperlukan pada user
+	user.Name = updatedUser.Name
+	user.Email = updatedUser.Email
+
+	// Jika password diisi, perbarui juga password
+	if updatedUser.Password != "" {
+		// Lakukan hashing password baru
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(updatedUser.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return err
+		}
+		user.Password = string(hashedPassword)
+	}
+
+	// Simpan perubahan pada pengguna
+	if err := repo.db.Save(&user).Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// CheckProfileByID implements user.UserDataInterface.
+func (repo *userQuery) CheckProfileByID(userID string) (user.UserCore, error) {
+	var userData User
+
+	// Find the user profile by ID
+	tx := repo.db.First(&userData, "user_id = ?", userID)
+	if tx.Error != nil {
+		return user.UserCore{}, tx.Error
+	}
+
+	// Convert database model to user core model
+	dataCore := user.UserCore{
+		UserID: userData.UserID,
+		Name:   userData.Name,
+		Email:  userData.Email,
+	}
+
+	return dataCore, nil
 }
 
 // Login implements user.UserDataInterface.

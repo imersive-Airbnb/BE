@@ -1,9 +1,11 @@
 package handler
 
 import (
+	"airnbn/app/middlewares"
 	"airnbn/features/user"
 	"airnbn/helper"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -63,4 +65,64 @@ func (handler *UserHandler) Login(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, helper.SuccessWithDataResponse("login success", response))
+}
+
+func (handler *UserHandler) GetProfileByID(c echo.Context) error {
+	// Extract the user ID from the token
+	userID, err := middlewares.ExtractTokenUserId(c)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, helper.FailedResponse("unauthorized"))
+	}
+
+	// Get the user profile by ID
+	profile, err := handler.userService.CheckProfile(strconv.Itoa(userID))
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, helper.FailedResponse(err.Error()))
+	}
+
+	return c.JSON(http.StatusOK, helper.SuccessWithDataResponse("Profile retrieved successfully", profile))
+}
+
+func (handler *UserHandler) UpdateUserByID(c echo.Context) error {
+	// Mendapatkan ID pengguna dari token
+	userID, err := middlewares.ExtractTokenUserId(c)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, helper.FailedResponse(err.Error()))
+	}
+
+	// Mendapatkan data pengguna yang diperbarui dari permintaan
+	var updatedUser user.UserCore
+	if err := c.Bind(&updatedUser); err != nil {
+		return c.JSON(http.StatusBadRequest, helper.FailedResponse("failed to bind data"))
+	}
+
+	// Memperbarui pengguna berdasarkan ID
+	if err := handler.userService.UpdateUser(strconv.Itoa(userID), updatedUser); err != nil {
+		return c.JSON(http.StatusInternalServerError, helper.FailedResponse(err.Error()))
+	}
+
+	return c.JSON(http.StatusOK, helper.SuccessResponse("user updated successfully"))
+}
+
+func (handler *UserHandler) UpgradeStatus(c echo.Context) error {
+	// Mendapatkan ID pengguna dari token JWT yang valid
+	userID, err := middlewares.ExtractTokenUserId(c)
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, helper.FailedResponse("Unauthorized"))
+	}
+
+	newStatus := c.FormValue("status")
+
+	// Validasi status baru
+	if newStatus != "default" && newStatus != "hosting" {
+		return c.JSON(http.StatusBadRequest, helper.FailedResponse("Invalid status"))
+	}
+
+	// Upgrade status pengguna
+	err = handler.userService.UpgradeStatus(strconv.Itoa(userID), newStatus)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, helper.FailedResponse(err.Error()))
+	}
+
+	return c.JSON(http.StatusOK, helper.SuccessResponse("Status upgraded successfully"))
 }
