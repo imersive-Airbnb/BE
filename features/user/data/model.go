@@ -11,6 +11,7 @@ import (
 type User struct {
 	UserID      string                    `gorm:"primaryKey;type:varchar(50)"`
 	Name        string                    `gorm:"type:varchar(100);not null;unique"`
+	Phone       string                    `gorm:"type:varchar(100);not null"`
 	Email       string                    `gorm:"type:varchar(100);not null;unique"`
 	Password    string                    `gorm:"type:varchar(100);not null"`
 	Status      string                    `gorm:"type:enum('default', 'hosting'); default:'default'"`
@@ -27,6 +28,7 @@ func userModels(u User) user.UserCore {
 		UserID:    u.UserID,
 		Name:      u.Name,
 		Email:     u.Email,
+		Phone:     u.Phone,
 		Password:  u.Password,
 		Status:    u.Status,
 		CreatedAt: time.Time{},

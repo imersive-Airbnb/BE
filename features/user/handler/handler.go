@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
 
@@ -67,20 +68,24 @@ func (handler *UserHandler) Login(c echo.Context) error {
 	return c.JSON(http.StatusOK, helper.SuccessWithDataResponse("login success", response))
 }
 
-func (handler *UserHandler) GetProfileByID(c echo.Context) error {
-	// Extract the user ID from the token
-	userID, err := middlewares.ExtractTokenUserId(c)
+func (handler *UserHandler) CheckProfileByID(c echo.Context) error {
+	// Extract user ID from the path parameter
+	userID := c.Param("id")
+
+	// Parse userID to uuid.UUID
+	uuidUserID, err := uuid.Parse(userID)
 	if err != nil {
-		return c.JSON(http.StatusUnauthorized, helper.FailedResponse("unauthorized"))
+		return c.JSON(http.StatusBadRequest, helper.FailedResponse("Invalid user ID"))
 	}
 
-	// Get the user profile by ID
-	profile, err := handler.userService.CheckProfile(strconv.Itoa(userID))
+	// Retrieve user profile from the userService
+	userData, err := handler.userService.CheckProfile(uuidUserID)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, helper.FailedResponse(err.Error()))
+		return c.JSON(http.StatusInternalServerError, helper.FailedResponse("Failed to retrieve user profile"))
 	}
 
-	return c.JSON(http.StatusOK, helper.SuccessWithDataResponse("Profile retrieved successfully", profile))
+	// Create and return the response
+	return c.JSON(http.StatusOK, helper.SuccessWithDataResponse("User profile retrieved successfully", userData))
 }
 
 func (handler *UserHandler) UpdateUserByID(c echo.Context) error {
