@@ -7,7 +7,6 @@ import (
 	"errors"
 
 	"github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -63,28 +62,21 @@ func (repo *userQuery) UpgradeStatus(userID string, newStatus string) error {
 
 // UpdateUserByID implements user.UserDataInterface.
 func (repo *userQuery) UpdateUserByID(userID string, updatedUser user.UserCore) error {
-	// Dapatkan pengguna berdasarkan userID
 	var user User
 	if err := repo.db.First(&user, "user_id = ?", userID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("User not found")
+		}
 		return err
 	}
 
-	// Perbarui bidang-bidang yang diperlukan pada user
+	// Update the required fields on the user
 	user.Name = updatedUser.Name
 	user.Email = updatedUser.Email
+	user.Phone = updatedUser.Phone
 
-	// Jika password diisi, perbarui juga password
-	if updatedUser.Password != "" {
-		// Lakukan hashing password baru
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(updatedUser.Password), bcrypt.DefaultCost)
-		if err != nil {
-			return err
-		}
-		user.Password = string(hashedPassword)
-	}
-
-	// Simpan perubahan pada pengguna
-	if err := repo.db.Save(&user).Error; err != nil {
+	// Save the changes to the user
+	if err := repo.db.Model(&user).Updates(user).Error; err != nil {
 		return err
 	}
 
