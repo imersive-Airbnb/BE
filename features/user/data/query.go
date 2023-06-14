@@ -30,9 +30,6 @@ func (repo *userQuery) CheckProfileByID(userID uuid.UUID) (user.UserCore, error)
 		UserID:    userID.String(),
 		Name:      userData.Name,
 		Email:     userData.Email,
-		Phone:     userData.Phone,
-		Password:  userData.Password,
-		Status:    userData.Status,
 		CreatedAt: userData.CreatedAt,
 		UpdatedAt: userData.UpdatedAt,
 	}
