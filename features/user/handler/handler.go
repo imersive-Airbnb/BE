@@ -84,8 +84,17 @@ func (handler *UserHandler) CheckProfileByID(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, helper.FailedResponse("Failed to retrieve user profile"))
 	}
 
-	// Create and return the response
-	return c.JSON(http.StatusOK, helper.SuccessWithDataResponse("User profile retrieved successfully", userData))
+	// Create the UserResponse
+	response := UserResponse{
+		UserID:    userData.UserID,
+		Name:      userData.Name,
+		Email:     userData.Email,
+		CreatedAt: userData.CreatedAt,
+		UpdatedAt: userData.UpdatedAt,
+	}
+
+	// Return the response
+	return c.JSON(http.StatusOK, helper.SuccessWithDataResponse("User profile retrieved successfully", response))
 }
 
 func (handler *UserHandler) UpdateUserByID(c echo.Context) error {
